@@ -650,13 +650,28 @@
       mediosPago: ['Efectivo', 'Transferencia', 'Tarjeta']
     };
 
-    const { data: productos, error } = await db
-      .from('productos')
-      .select('id,codigo,marca,producto,descripcion,precio_base,activo')
-      .eq('activo', true)
-      .order('producto', { ascending: true });
+    let productos = [];
+    let desde = 0;
+    const bloque = 1000;
 
-    if (error) throw error;
+    while (true) {
+      const { data, error } = await db
+        .from('productos')
+        .select('id,codigo,marca,producto,descripcion,precio_base,activo')
+        .eq('activo', true)
+        .order('producto', { ascending: true })
+        .range(desde, desde + bloque - 1);
+
+      if (error) throw error;
+
+      productos = productos.concat(data || []);
+
+      if (!data || data.length < bloque) {
+        break;
+      }
+
+      desde += bloque;
+    }
 
     PRODUCTOS = (productos || []).map(p => ({
       id: p.id,
