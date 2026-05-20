@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
@@ -495,7 +494,7 @@
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   window.db = db;
 
-  const PENDIENTES_KEY = 'pedidos_pendientes_expo_v1';
+  const PENDIENTES_KEY = 'pedidos_pendientes_expo_produccion_v1';
 
   let usuarioLogueado = null;
   let CONFIG = {};
@@ -650,28 +649,13 @@
       mediosPago: ['Efectivo', 'Transferencia', 'Tarjeta']
     };
 
-    let productos = [];
-    let desde = 0;
-    const bloque = 1000;
+    const { data: productos, error } = await db
+      .from('productos')
+      .select('id,codigo,marca,producto,descripcion,precio_base,activo')
+      .eq('activo', true)
+      .order('producto', { ascending: true });
 
-    while (true) {
-      const { data, error } = await db
-        .from('productos')
-        .select('id,codigo,marca,producto,descripcion,precio_base,activo')
-        .eq('activo', true)
-        .order('producto', { ascending: true })
-        .range(desde, desde + bloque - 1);
-
-      if (error) throw error;
-
-      productos = productos.concat(data || []);
-
-      if (!data || data.length < bloque) {
-        break;
-      }
-
-      desde += bloque;
-    }
+    if (error) throw error;
 
     PRODUCTOS = (productos || []).map(p => ({
       id: p.id,
