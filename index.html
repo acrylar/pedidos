@@ -1405,7 +1405,9 @@
     document.getElementById('pagoRealizado').value = 'NO';
     document.getElementById('bloquePagos').classList.add('hidden');
     document.getElementById('resultadosBusqueda').classList.add('hidden');
-
+    document.getElementById('cotizacionUSD').value =
+      Number(CONFIG.cotizacionUSD || 0);
+    
     ITEMS = [];
     PAGOS = [];
     productoActual = null;
