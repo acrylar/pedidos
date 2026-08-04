@@ -551,6 +551,10 @@
     document.getElementById('loginError').innerText = '';
 
     cargarVendedorLogueado();
+
+    document.getElementById('cotizacionUSD').value =
+      Number(CONFIG.cotizacionUSD || 0);
+    
     actualizarEstadoPendientes();
     reenviarPedidosPendientesAutomatico();
   }
