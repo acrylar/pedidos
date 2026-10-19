@@ -550,6 +550,7 @@
     document.getElementById('app').style.display = 'block';
     document.getElementById('loginError').innerText = '';
 
+    await cargarVendedoresDisponibles();
     cargarVendedorLogueado();
 
     document.getElementById('cotizacionUSD').value =
@@ -575,11 +576,34 @@
     limpiarFormulario();
   }
 
+  // Obtiene únicamente los nombres de vendedores; no consulta contraseñas.
+  async function cargarVendedoresDisponibles() {
+    const { data, error } = await db.rpc('listar_vendedores_app');
+
+    if (error) {
+      console.error('No se pudo obtener la lista de vendedores:', error);
+      CONFIG.vendedores = [];
+      alert('No se pudo cargar el listado de vendedores. Se usará el usuario que inició sesión. Verificá la función listar_vendedores_app en Supabase.');
+      return;
+    }
+
+    CONFIG.vendedores = (data || [])
+      .map(v => String(v.nombre || '').trim())
+      .filter(Boolean);
+  }
+
   function cargarVendedorLogueado() {
     const vendedorSel = document.getElementById('vendedor');
-    vendedorSel.innerHTML = `<option value="${escaparAttr(usuarioLogueado.nombre)}">${escaparHTML(usuarioLogueado.nombre)}</option>`;
-    vendedorSel.value = usuarioLogueado.nombre;
-    vendedorSel.disabled = true;
+    const nombreInicial = String(usuarioLogueado.nombre || '').trim();
+    const nombres = [...new Set([nombreInicial, ...(CONFIG.vendedores || [])])]
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'es'));
+
+    vendedorSel.innerHTML = nombres
+      .map(nombre => `<option value="${escaparAttr(nombre)}">${escaparHTML(nombre)}</option>`)
+      .join('');
+    vendedorSel.value = nombreInicial;
+    vendedorSel.disabled = nombres.length <= 1;
   }
 
   function formato(num) {
